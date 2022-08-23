@@ -3,6 +3,15 @@
 import * as assert from "assert";
 import { mimeOrDefault, asset } from "../src/github";
 
+function streamToString (stream) {
+  const chunks: Buffer[] = [];
+  return new Promise((resolve, reject) => {
+    stream.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
+    stream.on('error', (err) => reject(err));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+  })
+}
+
 describe("github", () => {
   describe("mimeOrDefault", () => {
     it("returns a specific mime for common path", async () => {
@@ -19,7 +28,7 @@ describe("github", () => {
       assert.equal(name, "bar.txt");
       assert.equal(mime, "text/plain");
       assert.equal(size, 10);
-      assert.equal(data.toString(), "release me");
+      assert.equal(await streamToString(data), "release me");
     });
   });
 });
